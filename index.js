@@ -25,7 +25,7 @@ app.get('/info', async (request, response) => {
   response.send(`<p>Phonebook has info for ${count} people</p><p>${new Date()}</p>`)
 })
 
-app.get("/api/persons", (request, response,next) => {
+app.get("/api/persons", (request, response, next) => {
   Persons.find({})
     .then(res => {
       response.json(res)
@@ -34,7 +34,7 @@ app.get("/api/persons", (request, response,next) => {
 })
 
 
-app.get('/api/persons/:id', (request, response,next) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Persons.findById(request.params.id)
     .then(person => {
       response.json(person)
@@ -44,7 +44,7 @@ app.get('/api/persons/:id', (request, response,next) => {
 
 
 
-app.delete('/api/persons/:id', (request, response,next) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Persons.findByIdAndDelete(request.params.id)
     .then(result => {
       if (result) {
@@ -60,7 +60,7 @@ app.delete('/api/persons/:id', (request, response,next) => {
 app.put('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   const person = request.body
-  Person.findByIdAndUpdate(id, person, { new: true })
+  Persons.findByIdAndUpdate(id, person, { new: true })
     .then(updatedPerson => {
       if (updatedPerson) {
         response.json(updatedPerson)
@@ -71,33 +71,26 @@ app.put('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response,next) => {
-  const body = request.body
+app.post('/api/persons', (request, response, next) => {
+  try {
+    const body = request.body
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'Name or Number is missing'
-    })
-  }
-
-  Persons.find({}).then(persons => {
-    if (persons.find(person => person.name.toLowerCase() === body.name.toLowerCase())) {
+    if (!body.name || !body.number) {
       return response.status(400).json({
-        error: 'name must be unique'
+        error: 'Name or Number is missing'
       })
     }
-  })
 
-  const person = new Persons({
-    name: body.name,
-    number: body.number,
-  })
-  person.save().then(res => {
-    response.json(res)
-  })
+    const person = new Persons({
+      name: body.name,
+      number: body.number,
+    })
 
+    person.save().then(result => response.json(person))
 
-
+  } catch (error) {
+    next(error)
+  }
 })
 
 const errorHandler = (error, request, response, next) => {
